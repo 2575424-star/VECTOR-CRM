@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Auto — Карточка автомобиля</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">VECTOR CRM</div>
+      <nav>
+        <button class="nav-item">Главная</button>
+        <button class="nav-item active">Автомобили</button>
+        <button class="nav-item">Клиенты</button>
+        <button class="nav-item">Сделки</button>
+        <button class="nav-item">Платежи</button>
+        <button class="nav-item">Документы</button>
+        <button class="nav-item">Аналитика</button>
+        <button class="nav-item">Настройки</button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <input id="search" class="search" placeholder="Поиск по VIN, автомобилю, клиенту…" />
+        <div class="user-pill">Павел</div>
+      </header>
+
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Карточка автомобиля</div>
+          <h1 id="carTitle">BMW X5 xDrive40i</h1>
+          <div class="meta" id="carMeta">2023 · 28 400 км · VIN: WBA00000000000000</div>
+        </div>
+        <div class="actions">
+          <button id="addExpenseBtn" class="btn secondary">+ Расход</button>
+          <button id="changeStatusBtn" class="btn secondary">Статус</button>
+          <label class="btn primary upload-btn">
+            Загрузить файл
+            <input id="fileInput" type="file" multiple hidden />
+          </label>
+        </div>
+      </section>
+
+      <section class="kpis">
+        <div class="card kpi"><span>Покупка</span><strong id="purchasePrice">8 900 000 ₽</strong></div>
+        <div class="card kpi"><span>Расходы</span><strong id="expensesTotal">320 000 ₽</strong></div>
+        <div class="card kpi"><span>Продажа</span><strong id="salePrice">10 200 000 ₽</strong></div>
+        <div class="card kpi positive"><span>Маржа</span><strong id="marginValue">980 000 ₽</strong></div>
+      </section>
+
+      <section class="grid">
+        <div class="card gallery">
+          <div class="section-title">Фотографии автомобиля</div>
+          <div id="photoGrid" class="photo-grid">
+            <div class="photo-placeholder">Фото автомобиля</div>
+            <div class="photo-placeholder small">Фото</div>
+            <div class="photo-placeholder small">Фото</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Данные автомобиля</div>
+          <div class="fields">
+            <label>Марка и модель<input id="model" value="BMW X5 xDrive40i" /></label>
+            <label>Год<input id="year" value="2023" /></label>
+            <label>Пробег<input id="mileage" value="28400" /></label>
+            <label>VIN<input id="vin" value="WBA00000000000000" /></label>
+            <label>Статус
+              <select id="status">
+                <option>В пути</option>
+                <option selected>На складе</option>
+                <option>Продан</option>
+                <option>Ожидает оплаты</option>
+              </select>
+            </label>
+            <label>Цена покупки<input id="purchase" type="number" value="8900000" /></label>
+            <label>Цена продажи<input id="sale" type="number" value="10200000" /></label>
+          </div>
+          <button id="saveCarBtn" class="btn primary full">Сохранить данные</button>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Клиент / покупатель</div>
+          <div class="fields">
+            <label>ФИО<input id="clientName" value="Иванов Иван Иванович" /></label>
+            <label>Телефон<input id="clientPhone" value="+7 900 000-00-00" /></label>
+            <label>Email<input id="clientEmail" value="client@example.com" /></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Логистика</div>
+          <div class="timeline">
+            <div class="step done">Покупка</div>
+            <div class="step done">Отправка</div>
+            <div class="step done">Таможня</div>
+            <div class="step current">Склад</div>
+            <div class="step">Продажа</div>
+          </div>
+        </div>
+
+        <div class="card documents">
+          <div class="section-title-row">
+            <div class="section-title">Документы и файлы</div>
+            <label class="mini-upload">+ Добавить<input id="fileInput2" type="file" multiple hidden /></label>
+          </div>
+          <div id="documentsList" class="documents-list"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Расходы</div>
+          <div id="expenseList" class="expense-list"></div>
+          <div class="expense-summary">Итого: <strong id="expenseSummary">320 000 ₽</strong></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="expenseDialog">
+    <form method="dialog" id="expenseForm" class="dialog-form">
+      <h3>Добавить расход</h3>
+      <label>Название<input id="expenseName" required placeholder="Например, доставка" /></label>
+      <label>Сумма<input id="expenseAmount" type="number" required placeholder="50000" /></label>
+      <div class="dialog-actions">
+        <button value="cancel" class="btn secondary">Отмена</button>
+        <button id="saveExpenseBtn" value="default" class="btn primary">Добавить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
