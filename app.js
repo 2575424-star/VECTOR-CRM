@@ -1,291 +1,50 @@
-// =====================================
-// VECTOR CRM + SUPABASE
-// =====================================
+const SUPABASE_URL="https://nrchmdphzwgntsgjesqn.supabase.co";
+const SUPABASE_KEY="ВСТАВЬТЕ_SUPABASE_PUBLISHABLE_KEY";
 
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-// Данные Supabase
-const SUPABASE_URL = "https://nrchmdphzwgntsgjesqn.supabase.co";
+let car=null;
 
-const SUPABASE_KEY = "sb_publishable_gF1GO41QQznJcDycpLBjkw_7fn_Q-hO";
-
-
-const supabaseClient = supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
-
-
-// =====================================
-// Формат денег
-// =====================================
-
-function money(value){
-    return new Intl.NumberFormat('ru-RU')
-    .format(Number(value || 0)) + " ₽";
-}
-
-
-// =====================================
-// Загружаем автомобиль
-// =====================================
-
-let car = null;
-
+const money=n=>new Intl.NumberFormat("ru-RU").format(Number(n||0))+" ₽";
 
 async function loadCar(){
-
-
-    const {data,error} = await supabaseClient
-    .from("cars")
-    .select("*")
-    .limit(1)
-    .single();
-
-
-    if(error){
-
-        console.log(error);
-        document.getElementById("carTitle").innerText="Ошибка загрузки";
-
-        return;
-    }
-
-
-    car=data;
-
-
-    renderCar();
-
-
+ const {data,error}=await supabaseClient.from("cars").select("*").limit(1);
+ if(error){console.error(error);return;}
+ car=data[0];
+ if(!car)return;
+ renderCar();
+ loadExpenses();
 }
-
-
-
-// =====================================
-// Показываем данные
-// =====================================
-
 
 function renderCar(){
-
-
-    document.getElementById("carTitle").innerText =
-    `${car.brand} ${car.model}`;
-
-
-    document.getElementById("carMeta").innerText =
-    `${car.year} · ${car.mileage || 0} км · VIN: ${car.vin || "-"}`;
-
-
-
-    document.getElementById("purchasePrice").innerText =
-    money(car.purchase_price);
-
-
-
-    document.getElementById("salePrice").innerText =
-    money(car.sale_price);
-
-
-
-    document.getElementById("status").value =
-    car.status || "На складе";
-
-
-
-    if(document.getElementById("brand"))
-    document.getElementById("brand").value =
-    car.brand || "";
-
-
-
-    if(document.getElementById("model"))
-    document.getElementById("model").value =
-    car.model || "";
-
-
-
-    if(document.getElementById("year"))
-    document.getElementById("year").value =
-    car.year || "";
-
-
-
-    if(document.getElementById("vin"))
-    document.getElementById("vin").value =
-    car.vin || "";
-
-
-
-    if(document.getElementById("mileage"))
-    document.getElementById("mileage").value =
-    car.mileage || "";
-
-
-
-    calculate();
-
-
+ document.getElementById("carTitle").textContent=`${car.brand} ${car.model}`;
+ document.getElementById("carMeta").textContent=`${car.year} · ${car.mileage||0} км · VIN: ${car.vin||"-"}`;
+ if(document.getElementById("purchasePrice")) purchasePrice.textContent=money(car.purchase_price);
+ if(document.getElementById("salePrice")) salePrice.textContent=money(car.sale_price);
 }
-
-
-
-// =====================================
-// Расходы
-// =====================================
-
 
 async function loadExpenses(){
-
-
-const {data,error}=await supabaseClient
-.from("expenses")
-.select("*")
-.eq("car_id",car.id);
-
-
-
-if(error){
-console.log(error);
-return;
+ const {data}=await supabaseClient.from("expenses").select("*").eq("car_id",car.id);
+ const total=(data||[]).reduce((a,b)=>a+Number(b.amount||0),0);
+ if(document.getElementById("expenseTotal")) expenseTotal.textContent=money(total);
+ if(document.getElementById("margin")) margin.textContent=money(car.sale_price-car.purchase_price-total);
 }
-
-
-
-let total=0;
-
-
-data.forEach(e=>{
-
-total+=Number(e.amount || 0);
-
-});
-
-
-
-document.getElementById("expensesTotal").innerText =
-money(total);
-
-
-
-calculate(total);
-
-
-}
-
-
-
-// =====================================
-// Маржа
-// =====================================
-
-
-function calculate(exp=0){
-
-
-let margin =
-Number(car?.sale_price || 0)
--
-Number(car?.purchase_price || 0)
--
-Number(exp);
-
-
-
-if(document.getElementById("marginValue"))
-document.getElementById("marginValue").innerText =
-money(margin);
-
-
-
-}
-
-
-
-// =====================================
-// Сохранение
-// =====================================
-
 
 async function saveCar(){
-
-
-let update={
-
-brand:
-document.getElementById("brand").value,
-
-
-model:
-document.getElementById("model").value,
-
-
-year:
-Number(document.getElementById("year").value),
-
-
-vin:
-document.getElementById("vin").value,
-
-
-mileage:
-Number(document.getElementById("mileage").value),
-
-
-status:
-document.getElementById("status").value
-
-};
-
-
-
-const {error}=await supabaseClient
-.from("cars")
-.update(update)
-.eq("id",car.id);
-
-
-
-if(error){
-
-alert(error.message);
-
-return;
-
+ await supabaseClient.from("cars").update({
+  brand:brand.value,
+  model:model.value,
+  year:Number(year.value),
+  vin:vin.value,
+  mileage:Number(mileage.value),
+  purchase_price:Number(purchase.value),
+  sale_price:Number(sale.value),
+  status:status.value
+ }).eq("id",car.id);
+ loadCar();
 }
 
-
-alert("Автомобиль сохранён");
-
-
-loadCar();
-
-
-
-}
-
-
-
-// =====================================
-// Запуск
-// =====================================
-
-
-document.addEventListener(
-"DOMContentLoaded",
-()=>{
-
-
-loadCar();
-
-
-document
-.getElementById("saveCarBtn")
-?.addEventListener(
-"click",
-saveCar
-);
-
-
-
+document.addEventListener("DOMContentLoaded",()=>{
+ loadCar();
+ document.getElementById("saveBtn")?.addEventListener("click",saveCar);
 });
