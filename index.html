@@ -3,44 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VECTOR CRM - Автомобили</title>
+
+<title>VECTOR CRM</title>
+
 <link rel="stylesheet" href="styles.css">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 </head>
+
 <body>
+
 <div class="sidebar">
-<h2>VECTOR CRM</h2>
-<div class="active">🚗 Автомобили</div>
-<div>👥 Клиенты</div>
-<div>🤝 Сделки</div>
-<div>💳 Платежи</div>
-<div>📄 Документы</div>
-<div>📊 Аналитика</div>
+
+<div class="logo">
+VECTOR CRM
 </div>
+
+<div class="menu active">
+🚗 Автомобили
+</div>
+
+<div class="menu">
+👥 Клиенты
+</div>
+
+<div class="menu">
+🤝 Сделки
+</div>
+
+<div class="menu">
+💳 Платежи
+</div>
+
+<div class="menu">
+📄 Документы
+</div>
+
+<div class="menu">
+📊 Аналитика
+</div>
+
+</div>
+
 
 <main>
-<header>
-<input placeholder="Поиск VIN, автомобиль, клиент...">
-<button onclick="openModal()">+ Добавить автомобиль</button>
-</header>
 
+
+<div class="topbar">
+
+<div>
 <h1>Автомобили</h1>
-<div id="cars" class="grid"></div>
+<p>Управление автопарком</p>
+</div>
+
+
+<button class="add-btn" onclick="openModal()">
+＋ Добавить автомобиль
+</button>
+
+
+</div>
+
+
+
+<div class="filters">
+
+<input placeholder="🔍 Поиск VIN, марки, модели">
+
+<button>
+Все
+</button>
+
+<button>
+На складе
+</button>
+
+<button>
+В пути
+</button>
+
+<button>
+Проданы
+</button>
+
+</div>
+
+
+
+<div id="cars" class="cars-grid">
+
+</div>
+
+
 </main>
 
+
+
+
 <div id="modal" class="modal">
+
+
 <div class="window">
-<h2>Новый автомобиль</h2>
+
+
+<h2>
+Новый автомобиль
+</h2>
+
+
 <input id="brand" placeholder="Марка">
+
 <input id="model" placeholder="Модель">
+
 <input id="year" placeholder="Год">
+
 <input id="vin" placeholder="VIN">
+
 <input id="mileage" placeholder="Пробег">
+
 <input id="purchase_price" placeholder="Цена покупки">
-<button onclick="saveCar()">Сохранить</button>
-</div>
+
+
+<button class="save-btn" onclick="saveCar()">
+Сохранить
+</button>
+
+
 </div>
 
+
+</div>
+
+
+
 <script src="app.js"></script>
+
+
 </body>
 </html>
