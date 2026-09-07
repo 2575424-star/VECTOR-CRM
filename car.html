@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>VECTOR CRM - Авто</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="sidebar">
+<div class="logo">VECTOR CRM</div>
+<div class="menu active">🚗 Автомобили</div>
+<div class="menu">👥 Клиенты</div>
+<div class="menu">📄 Документы</div>
+</div>
+
+<main>
+<div class="topbar">
+<div>
+<h1 id="title">Загрузка...</h1>
+<p id="meta"></p>
+</div>
+<a href="index.html"><button class="add-btn">← Назад</button></a>
+</div>
+
+<div class="car-card">
+<div class="car-photo">Фото автомобиля</div>
+
+<h2>Финансы</h2>
+<p>Покупка: <b id="purchase">0 ₽</b></p>
+<p>Расходы: <b id="expenses">0 ₽</b></p>
+<p>Продажа: <b id="sale">0 ₽</b></p>
+<p>Маржа: <b id="margin" class="green">0 ₽</b></p>
+
+<h2>Данные</h2>
+<p>Марка: <b id="brand"></b></p>
+<p>Модель: <b id="model"></b></p>
+<p>VIN: <b id="vin"></b></p>
+<p>Год: <b id="year"></b></p>
+<p>Пробег: <b id="mileage"></b></p>
+</div>
+</main>
+
+<script src="car.js"></script>
+</body>
+</html>
