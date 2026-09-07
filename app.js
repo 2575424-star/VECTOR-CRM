@@ -1,16 +1,12 @@
-// ===============================
+// =====================================
 // VECTOR CRM + SUPABASE
-// ===============================
+// =====================================
 
 
-// ---------- SUPABASE ----------
+// Данные Supabase
+const SUPABASE_URL = "https://nrchmdphzwgntsgjesqn.supabase.co";
 
-const SUPABASE_URL =
-"https://nrchmdphzwgntsgjesqn.supabase.co";
-
-
-const SUPABASE_KEY =
-"sb_publishable_gF1GO41QQznJcDycpLBjkw_7fn_Q-hO";
+const SUPABASE_KEY = "ТВОЙ_КЛЮЧ_ИЗ_SUPABASE";
 
 
 const supabaseClient = supabase.createClient(
@@ -19,193 +15,234 @@ const supabaseClient = supabase.createClient(
 );
 
 
-// ---------- HELPERS ----------
+// =====================================
+// Формат денег
+// =====================================
 
-const money = n =>
-new Intl.NumberFormat('ru-RU')
-.format(Number(n || 0))
-+ ' ₽';
-
-
-
-// ---------- STATE ----------
-
-let state = {
-
-id:null,
-
-brand:'',
-model:'',
-year:'',
-vin:'',
-mileage:'',
-color:'',
-country:'',
-status:'',
-
-purchase:0,
-sale:0,
-
-expenses:[]
-
-};
+function money(value){
+    return new Intl.NumberFormat('ru-RU')
+    .format(Number(value || 0)) + " ₽";
+}
 
 
+// =====================================
+// Загружаем автомобиль
+// =====================================
 
-// ---------- LOAD CAR ----------
+let car = null;
 
 
 async function loadCar(){
 
 
-const {data,error}=await supabaseClient
-
-.from('cars')
-
-.select('*')
-
-.eq('brand','BMW')
-
-.eq('model','X7')
-
-.single();
+    const {data,error} = await supabaseClient
+    .from("cars")
+    .select("*")
+    .limit(1)
+    .single();
 
 
+    if(error){
 
-if(error){
+        console.log(error);
+        document.getElementById("carTitle").innerText="Ошибка загрузки";
 
-console.log(
-"Ошибка загрузки автомобиля:",
-error
-);
-
-return;
-
-}
+        return;
+    }
 
 
-
-state={
-
-
-id:data.id,
+    car=data;
 
 
-brand:data.brand,
-
-model:data.model,
-
-year:data.year,
-
-vin:data.vin || '',
-
-mileage:data.mileage || '',
-
-color:data.color || '',
-
-country:data.country || '',
-
-
-status:data.status || 'На складе',
-
-
-purchase:data.purchase_price || 0,
-
-
-sale:data.sale_price || 0,
-
-
-expenses:[]
-
-};
-
-
-
-await loadExpenses();
-
-
-refresh();
+    renderCar();
 
 
 }
 
 
 
-// ---------- EXPENSES ----------
+// =====================================
+// Показываем данные
+// =====================================
+
+
+function renderCar(){
+
+
+    document.getElementById("carTitle").innerText =
+    `${car.brand} ${car.model}`;
+
+
+    document.getElementById("carMeta").innerText =
+    `${car.year} · ${car.mileage || 0} км · VIN: ${car.vin || "-"}`;
+
+
+
+    document.getElementById("purchasePrice").innerText =
+    money(car.purchase_price);
+
+
+
+    document.getElementById("salePrice").innerText =
+    money(car.sale_price);
+
+
+
+    document.getElementById("status").value =
+    car.status || "На складе";
+
+
+
+    if(document.getElementById("brand"))
+    document.getElementById("brand").value =
+    car.brand || "";
+
+
+
+    if(document.getElementById("model"))
+    document.getElementById("model").value =
+    car.model || "";
+
+
+
+    if(document.getElementById("year"))
+    document.getElementById("year").value =
+    car.year || "";
+
+
+
+    if(document.getElementById("vin"))
+    document.getElementById("vin").value =
+    car.vin || "";
+
+
+
+    if(document.getElementById("mileage"))
+    document.getElementById("mileage").value =
+    car.mileage || "";
+
+
+
+    calculate();
+
+
+}
+
+
+
+// =====================================
+// Расходы
+// =====================================
 
 
 async function loadExpenses(){
 
 
 const {data,error}=await supabaseClient
-
-
-.from('expenses')
-
-.select('*')
-
-.eq('car_id',state.id);
+.from("expenses")
+.select("*")
+.eq("car_id",car.id);
 
 
 
 if(error){
-
 console.log(error);
-
 return;
+}
+
+
+
+let total=0;
+
+
+data.forEach(e=>{
+
+total+=Number(e.amount || 0);
+
+});
+
+
+
+document.getElementById("expensesTotal").innerText =
+money(total);
+
+
+
+calculate(total);
+
 
 }
 
 
 
-state.expenses=data || [];
+// =====================================
+// Маржа
+// =====================================
+
+
+function calculate(exp=0){
+
+
+let margin =
+Number(car?.sale_price || 0)
+-
+Number(car?.purchase_price || 0)
+-
+Number(exp);
+
+
+
+if(document.getElementById("marginValue"))
+document.getElementById("marginValue").innerText =
+money(margin);
+
 
 
 }
 
 
 
-// ---------- SAVE CAR ----------
+// =====================================
+// Сохранение
+// =====================================
 
 
 async function saveCar(){
 
 
-const update={
+let update={
+
+brand:
+document.getElementById("brand").value,
+
+
+model:
+document.getElementById("model").value,
+
+
+year:
+Number(document.getElementById("year").value),
 
 
 vin:
-document.getElementById('vin').value,
+document.getElementById("vin").value,
 
 
 mileage:
-Number(
-document.getElementById('mileage').value
-),
+Number(document.getElementById("mileage").value),
 
 
 status:
-document.getElementById('status').value,
-
-
-sale_price:
-Number(
-document.getElementById('sale').value
-)
-
+document.getElementById("status").value
 
 };
 
 
 
 const {error}=await supabaseClient
-
-
-.from('cars')
-
+.from("cars")
 .update(update)
-
-.eq('id',state.id);
+.eq("id",car.id);
 
 
 
@@ -218,156 +255,10 @@ return;
 }
 
 
-alert(
-"Автомобиль сохранён"
-);
+alert("Автомобиль сохранён");
 
 
-await loadCar();
-
-
-}
-
-
-
-
-// ---------- REFRESH UI ----------
-
-
-function refresh(){
-
-
-
-document.getElementById('carTitle')
-.textContent =
-state.brand+" "+state.model;
-
-
-
-document.getElementById('carMeta')
-.textContent =
-
-`${state.year} · ${
-state.mileage || 0
-} км · VIN: ${
-state.vin || '-'
-}`;
-
-
-
-document.getElementById('model')
-.value =
-state.brand+" "+state.model;
-
-
-
-document.getElementById('year')
-.value =
-state.year;
-
-
-
-document.getElementById('mileage')
-.value =
-state.mileage;
-
-
-
-document.getElementById('vin')
-.value =
-state.vin;
-
-
-
-document.getElementById('status')
-.value =
-state.status;
-
-
-
-document.getElementById('purchase')
-.value =
-state.purchase;
-
-
-
-document.getElementById('sale')
-.value =
-state.sale;
-
-
-
-const expenses =
-state.expenses.reduce(
-(sum,e)=>
-sum+Number(
-e.amount || e.price || 0
-),
-0
-);
-
-
-
-const margin =
-Number(state.sale)
--
-Number(state.purchase)
--
-expenses;
-
-
-
-document.getElementById('purchasePrice')
-.textContent =
-money(state.purchase);
-
-
-
-document.getElementById('salePrice')
-.textContent =
-money(state.sale);
-
-
-
-document.getElementById('expensesTotal')
-.textContent =
-money(expenses);
-
-
-
-document.getElementById('marginValue')
-.textContent =
-money(margin);
-
-
-
-const list =
-document.getElementById('expenseList');
-
-
-if(list){
-
-list.innerHTML =
-state.expenses.map(e=>`
-
-<div class="expense-item">
-
-<span>
-${e.name || 'Расход'}
-</span>
-
-
-<strong>
-${money(e.amount)}
-</strong>
-
-
-</div>
-
-
-`).join('');
-
-}
+loadCar();
 
 
 
@@ -375,192 +266,26 @@ ${money(e.amount)}
 
 
 
+// =====================================
+// Запуск
+// =====================================
 
-// ---------- FILE STORAGE ----------
 
+document.addEventListener(
+"DOMContentLoaded",
+()=>{
 
-const DB_NAME="vector_crm_files";
 
-const STORE="files";
-
-
-function openDb(){
-
-
-return new Promise((resolve,reject)=>{
-
-
-const request =
-indexedDB.open(
-DB_NAME,
-1
-);
-
-
-
-request.onupgradeneeded=()=>{
-
-
-let db=request.result;
-
-
-if(!db.objectStoreNames.contains(STORE))
-
-db.createObjectStore(
-STORE,
-{
-keyPath:'id',
-autoIncrement:true
-}
-);
-
-
-};
-
-
-
-request.onsuccess=()=>resolve(
-request.result
-);
-
-
-request.onerror=()=>reject(
-request.error
-);
-
-
-
-});
-
-
-}
-
-
-
-
-async function addFile(file){
-
-
-const db=await openDb();
-
-
-const tx=db.transaction(
-STORE,
-"readwrite"
-);
-
-
-tx.objectStore(STORE)
-.add({
-
-name:file.name,
-
-type:file.type,
-
-blob:file,
-
-date:new Date()
-
-});
-
-
-}
-
-
-
-
-async function refreshFiles(){
-
-
-const db=await openDb();
-
-
-const tx=
-db.transaction(
-STORE,
-"readonly"
-);
-
-
-const req=
-tx.objectStore(STORE)
-.getAll();
-
-
-req.onsuccess=()=>{
-
-
-const files=req.result;
-
-
-const box=
-document.getElementById(
-"documentsList"
-);
-
-
-
-if(!box)return;
-
-
-
-box.innerHTML =
-files.map(f=>`
-
-<div>
-
-${f.name}
-
-</div>
-
-`).join('');
-
-
-};
-
-
-}
-
-
-
+loadCar();
 
 
 document
-.getElementById('fileInput')
+.getElementById("saveCarBtn")
 ?.addEventListener(
-'change',
-async e=>{
-
-for(
-const f of e.target.files
-)
-
-await addFile(f);
-
-
-refreshFiles();
-
-
-});
-
-
-
-
-// ---------- BUTTONS ----------
-
-
-document
-.getElementById('saveCarBtn')
-?.addEventListener(
-'click',
+"click",
 saveCar
 );
 
 
 
-// ---------- START ----------
-
-
-loadCar();
-
-refreshFiles();
+});
