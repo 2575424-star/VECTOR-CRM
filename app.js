@@ -7,30 +7,55 @@ const supabaseClient = supabase.createClient(
 );
 
 
+// =========================
+// ЗАГРУЗКА АВТОМОБИЛЕЙ
+// =========================
+
 async function loadCars(){
 
-    const {data,error}=await supabaseClient
+    const { data, error } = await supabaseClient
         .from("cars")
         .select("*")
-        .order("created_at",{ascending:false});
+        .order("created_at", { ascending:false });
 
 
-    const box=document.getElementById("cars");
+    const box = document.getElementById("cars");
 
 
     if(error){
-        box.innerHTML="<h2>Ошибка загрузки</h2>";
-        console.log(error);
+
+        console.error(error);
+
+        box.innerHTML = `
+        <h2>
+        Ошибка загрузки автомобилей
+        </h2>
+        `;
+
         return;
     }
 
 
-    box.innerHTML=data.map(car=>{
+    if(!data || data.length === 0){
+
+        box.innerHTML = `
+        <h2>
+        Автомобилей пока нет
+        </h2>
+        `;
+
+        return;
+    }
+
+
+
+    box.innerHTML = data.map(car => {
 
 
         const margin =
-        (car.sale_price || 0) -
-        (car.purchase_price || 0);
+        Number(car.sale_price || 0) -
+        Number(car.purchase_price || 0);
+
 
 
         return `
@@ -43,47 +68,66 @@ async function loadCars(){
             </div>
 
 
+
             <div class="car-info">
 
-            <h2>
-            ${car.brand || ""} ${car.model || ""}
-            </h2>
+
+                <h2>
+                ${car.brand || ""}
+                ${car.model || ""}
+                </h2>
 
 
-            <div class="subtitle">
-            ${car.year || ""} • ${car.mileage || 0} км
-            </div>
+                <div class="subtitle">
+                ${car.year || ""} 
+                • 
+                ${car.mileage || 0} км
+                </div>
 
 
-            <p>
-            VIN:
-            ${car.vin || "-"}
-            </p>
+                <p>
+                VIN:
+                ${car.vin || "-"}
+                </p>
 
 
-            <div class="finance">
+
+                <div class="finance">
 
 
-            <div>
-            <span>Покупка</span>
-            <b>${Number(car.purchase_price||0).toLocaleString()} ₽</b>
-            </div>
+                    <div>
+                    <span>
+                    Покупка
+                    </span>
+
+                    <b>
+                    ${money(car.purchase_price)}
+                    </b>
+                    </div>
 
 
-            <div>
-            <span>Маржа</span>
-            <b class="green">
-            ${margin.toLocaleString()} ₽
-            </b>
-            </div>
+
+                    <div>
+                    <span>
+                    Маржа
+                    </span>
+
+                    <b class="green">
+                    ${money(margin)}
+                    </b>
+
+                    </div>
 
 
-            </div>
+                </div>
 
 
-            <button onclick="openCar('${car.id}')">
-            Открыть карточку
-            </button>
+
+                <button onclick="openCar('${car.id}')">
+
+                Открыть карточку
+
+                </button>
 
 
             </div>
@@ -91,7 +135,9 @@ async function loadCars(){
 
         </div>
 
+
         `;
+
 
     }).join("");
 
@@ -99,9 +145,15 @@ async function loadCars(){
 
 
 
+// =========================
+// ДОБАВЛЕНИЕ АВТО
+// =========================
+
+
 function openModal(){
 
-document.getElementById("modal").style.display="flex";
+    document.getElementById("modal")
+    .style.display="flex";
 
 }
 
@@ -110,65 +162,95 @@ document.getElementById("modal").style.display="flex";
 async function saveCar(){
 
 
-const car={
-
-brand:
-document.getElementById("brand").value,
+    const car = {
 
 
-model:
-document.getElementById("model").value,
+        brand:
+        document.getElementById("brand").value,
 
 
-year:
-Number(document.getElementById("year").value),
+        model:
+        document.getElementById("model").value,
 
 
-vin:
-document.getElementById("vin").value,
+        year:
+        Number(document.getElementById("year").value),
 
 
-mileage:
-Number(document.getElementById("mileage").value),
+        vin:
+        document.getElementById("vin").value,
 
 
-purchase_price:
-Number(document.getElementById("purchase_price").value)
-
-};
+        mileage:
+        Number(document.getElementById("mileage").value),
 
 
-const {error}=await supabaseClient
-.from("cars")
-.insert(car);
+        purchase_price:
+        Number(document.getElementById("purchase_price").value)
+
+
+    };
 
 
 
-if(error){
+    const {error}=await supabaseClient
+    .from("cars")
+    .insert(car);
 
-alert(error.message);
-return;
+
+
+    if(error){
+
+        alert(error.message);
+
+        console.error(error);
+
+        return;
+
+    }
+
+
+
+    document.getElementById("modal")
+    .style.display="none";
+
+
+    loadCars();
+
 
 }
 
 
 
-document.getElementById("modal").style.display="none";
-
-
-loadCars();
-
-
-}
-
+// =========================
+// ОТКРЫТИЕ КАРТОЧКИ
+// =========================
 
 
 function openCar(id){
 
-window.location.href="car.html?id="+id;
+    window.location.href =
+    "car.html?id=" + id;
 
 }
 
 
+
+// =========================
+// ФОРМАТ ДЕНЕГ
+// =========================
+
+
+function money(value){
+
+    return new Intl.NumberFormat("ru-RU")
+    .format(Number(value || 0))
+    + " ₽";
+
+}
+
+
+
+// старт
 
 loadCars();
