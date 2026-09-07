@@ -6,7 +6,7 @@
 // Данные Supabase
 const SUPABASE_URL = "https://nrchmdphzwgntsgjesqn.supabase.co";
 
-const SUPABASE_KEY = "ТВОЙ_КЛЮЧ_ИЗ_SUPABASE";
+const SUPABASE_KEY = "sb_publishable_gF1GO41QQznJcDycpLBjkw_7fn_Q-hO";
 
 
 const supabaseClient = supabase.createClient(
