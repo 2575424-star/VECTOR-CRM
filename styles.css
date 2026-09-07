@@ -1,15 +1,384 @@
-*{box-sizing:border-box;font-family:Arial}
-body{margin:0;background:#080c13;color:white;display:flex}
-.sidebar{width:260px;min-height:100vh;background:#101722;padding:30px}
-.sidebar div{padding:18px 10px;color:#9da8b8}
-.active{background:#1d2737;border-radius:12px;color:white!important}
-main{flex:1;padding:30px}
-header{display:flex;gap:20px}
-input{background:#0d131d;border:1px solid #273344;color:white;padding:15px;border-radius:10px;width:100%}
-button{background:white;color:#111;border:0;border-radius:12px;padding:15px 25px;cursor:pointer}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.card{background:#111925;border:1px solid #263142;border-radius:20px;padding:20px}
-.photo{height:150px;background:#202a38;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#778}
-.modal{display:none;position:fixed;inset:0;background:#0008;align-items:center;justify-content:center}
-.window{background:#121a26;padding:30px;border-radius:20px;width:400px}
-.window input{margin:8px 0}
+*{
+    box-sizing:border-box;
+    font-family:Inter, Arial, sans-serif;
+}
+
+body{
+    margin:0;
+    background:#070b12;
+    color:#fff;
+    display:flex;
+    min-height:100vh;
+}
+
+
+/* SIDEBAR */
+
+.sidebar{
+    width:260px;
+    background:#0d131d;
+    border-right:1px solid #1d2633;
+    padding:30px 20px;
+}
+
+
+.logo{
+    font-size:26px;
+    font-weight:700;
+    margin-bottom:40px;
+    letter-spacing:1px;
+}
+
+
+.menu{
+    padding:16px 18px;
+    margin-bottom:8px;
+    border-radius:14px;
+    color:#8c97a8;
+    cursor:pointer;
+    transition:.2s;
+}
+
+
+.menu:hover,
+.menu.active{
+    background:#182333;
+    color:#fff;
+}
+
+
+
+/* MAIN */
+
+main{
+    flex:1;
+    padding:35px;
+}
+
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+
+h1{
+    margin:0;
+    font-size:34px;
+}
+
+
+.topbar p{
+    color:#8793a5;
+    margin-top:8px;
+}
+
+
+
+/* BUTTONS */
+
+button{
+    border:none;
+    cursor:pointer;
+}
+
+
+.add-btn{
+    background:#fff;
+    color:#111;
+    padding:15px 25px;
+    border-radius:14px;
+    font-size:15px;
+    font-weight:600;
+}
+
+
+.add-btn:hover{
+    opacity:.9;
+}
+
+
+
+/* FILTERS */
+
+.filters{
+    display:flex;
+    gap:12px;
+    margin:30px 0;
+}
+
+
+.filters input{
+    flex:1;
+    background:#111925;
+    border:1px solid #263244;
+    color:white;
+    padding:15px 20px;
+    border-radius:14px;
+}
+
+
+.filters button{
+    background:#151d2a;
+    color:#b7c0ce;
+    padding:12px 20px;
+    border-radius:12px;
+}
+
+
+
+/* CARS GRID */
+
+.cars-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:25px;
+}
+
+
+
+/* CAR CARD */
+
+.car-card{
+
+    background:
+    linear-gradient(145deg,#151e2c,#0d131d);
+
+    border:1px solid #263244;
+
+    border-radius:24px;
+
+    overflow:hidden;
+
+    transition:.25s;
+
+}
+
+
+.car-card:hover{
+    transform:translateY(-5px);
+    border-color:#526174;
+}
+
+
+
+.car-photo{
+
+    height:210px;
+
+    background:
+    linear-gradient(135deg,#202b3b,#111722);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#7d8899;
+
+    font-size:18px;
+
+}
+
+
+
+.car-info{
+
+    padding:22px;
+
+}
+
+
+.car-info h2{
+
+    margin:0 0 10px;
+
+    font-size:23px;
+
+}
+
+
+
+.subtitle{
+
+    color:#9aa5b5;
+
+}
+
+
+.car-info p{
+
+    color:#8994a5;
+
+    font-size:14px;
+
+}
+
+
+
+.finance{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    margin:25px 0;
+
+}
+
+
+
+.finance div{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:6px;
+
+}
+
+
+
+.finance span{
+
+    color:#8994a5;
+
+    font-size:13px;
+
+}
+
+
+
+.green{
+
+    color:#38d996;
+
+}
+
+
+
+.car-info button{
+
+    width:100%;
+
+    padding:14px;
+
+    border-radius:14px;
+
+    background:#202b3b;
+
+    color:white;
+
+}
+
+
+
+/* MODAL */
+
+.modal{
+
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.65);
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+
+
+.window{
+
+    width:420px;
+
+    background:#111925;
+
+    padding:30px;
+
+    border-radius:25px;
+
+    border:1px solid #283548;
+
+}
+
+
+
+.window h2{
+
+    margin-top:0;
+
+}
+
+
+
+.window input{
+
+    width:100%;
+
+    margin:8px 0;
+
+    padding:14px;
+
+    border-radius:12px;
+
+    border:1px solid #303d50;
+
+    background:#0b111a;
+
+    color:white;
+
+}
+
+
+
+.save-btn{
+
+    width:100%;
+
+    margin-top:15px;
+
+    padding:15px;
+
+    border-radius:14px;
+
+    background:white;
+
+    color:black;
+
+    font-weight:600;
+
+}
+
+
+
+/* ADAPTIVE */
+
+@media(max-width:1100px){
+
+.cars-grid{
+grid-template-columns:repeat(2,1fr);
+}
+
+}
+
+
+@media(max-width:700px){
+
+.sidebar{
+display:none;
+}
+
+.cars-grid{
+grid-template-columns:1fr;
+}
+
+}
