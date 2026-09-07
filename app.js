@@ -1,5 +1,5 @@
 const SUPABASE_URL = "YOUR_URL";
-const SUPABASE_KEY = "YOUR_KEY";
+const SUPABASE_KEY = "sb_publishable_gF1GO41QQznJcDycpLBjkw_7fn_Q-hO";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function loadCars(){
