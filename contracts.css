@@ -1,0 +1,9 @@
+#partiesSection>button{margin-top:18px;font-size:15px;min-height:44px}
+#contractDialog{width:min(900px,94vw);max-height:90vh;overflow:auto;box-sizing:border-box}
+#contractDialog p{font-size:14px;color:#b4c9dc;line-height:1.5}
+#contractFields{display:grid;grid-template-columns:1fr 1fr;gap:14px;border:0;padding:0;min-width:0}
+#contractFields label{margin:0;font-size:14px;min-width:0}
+#contractFields input{box-sizing:border-box;min-width:0;font-size:16px;color-scheme:dark}
+#contractMessage{white-space:pre-wrap;overflow-wrap:anywhere}
+#contractDialog button{font-size:14px;min-height:44px}
+@media(max-width:650px){#contractFields{grid-template-columns:1fr}#contractDialog .dialog-actions{flex-wrap:wrap}}
