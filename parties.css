@@ -1,0 +1,18 @@
+.parties-section{margin-top:12px;scroll-margin-top:16px}
+.parties-section>h2{font-size:19px;margin-bottom:8px}
+.parties-hint{color:#94abc0;font-size:14px;line-height:1.5;margin:0 0 18px}
+.parties-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.party-form{min-width:0;padding:18px;border:1px solid var(--line);border-radius:10px;background:#071a2c}
+.party-form h3{font-size:17px;color:#eef6ff;text-transform:none;margin:0 0 16px}
+.party-fields{border:0;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:14px;min-width:0}
+.party-fields label{display:flex;flex-direction:column;gap:7px;font-size:13px;color:#afc3d5;min-width:0}
+.party-fields input{box-sizing:border-box;width:100%;min-width:0;padding:10px;border:1px solid #294b68;border-radius:7px;background:#041321;color:#eef6ff;font:inherit;font-size:16px;color-scheme:dark}
+.party-fields input:focus{outline:2px solid #278fff;outline-offset:2px}
+.party-wide{grid-column:1/-1}
+.party-message{font-size:14px;line-height:1.5;min-height:21px;color:#bad5eb;overflow-wrap:anywhere}
+.party-actions{display:flex;gap:10px;flex-wrap:wrap}
+.party-actions button{font-size:14px;min-height:42px}
+.party-actions button:disabled{opacity:.5;cursor:default}
+.party-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+@media(max-width:1000px){.parties-grid{grid-template-columns:1fr}}
+@media(max-width:550px){.party-fields{grid-template-columns:1fr}.party-form{padding:12px}.party-actions>*{flex:1}}
