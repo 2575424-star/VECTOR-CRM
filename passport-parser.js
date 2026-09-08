@@ -21,7 +21,7 @@ function parsePassportText(raw){
  }
  put('birth_date',labelled(/^(?:дата рождения|date of birth|birth date)\s*[:/]?\s*/i,2),date);
  put('passport_issued_at',labelled(/^(?:дата выдачи|date of issue|issue date|выдан[ао]?)\s*[:/]?\s*/i,2),date);
- put('passport_issued_by',labelled(/^(?:паспорт выдан|кем выдан(?: паспорт)?|орган выдачи|issuing authority|authority)\s*[:/]?\s*/i,3));
+ put('passport_issued_by',labelled(/^(?:паспорт выдан|кем выдан(?: паспорт)?|орган выдачи|issuing authority|authority)\s*[:/]?\s*/i,3),s=>{const text=s.split(/\d{2}[.\/-]\d{2}[.\/-]\d{4}|\d{3}[-–]\d{3}/)[0].trim();return /МВД|УФМС|ОВД|УВД|МИГРАЦ|AUTHORITY|DEPARTMENT|СОМ/i.test(text)?text:'';});
  put('birth_place',labelled(/^(?:место рождения|place of birth)\s*[:/]?\s*/i,2));
  put('citizenship',labelled(/^(?:гражданство|nationality|citizenship)\s*[:/]?\s*/i));
  put('registration_address',labelled(/^(?:адрес регистрации|место жительства|зарегистрирован[а]?|registration address|address)\s*[:/]?\s*/i,4));
