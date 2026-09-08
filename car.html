@@ -1,46 +1,11 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<title>VECTOR CRM - Авто</title>
-<link rel="stylesheet" href="styles.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-<div class="sidebar">
-<div class="logo">VECTOR CRM</div>
-<div class="menu active">🚗 Автомобили</div>
-<div class="menu">👥 Клиенты</div>
-<div class="menu">📄 Документы</div>
-</div>
-
-<main>
-<div class="topbar">
-<div>
-<h1 id="title">Загрузка...</h1>
-<p id="meta"></p>
-</div>
-<a href="index.html"><button class="add-btn">← Назад</button></a>
-</div>
-
-<div class="car-card">
-<div class="car-photo">Фото автомобиля</div>
-
-<h2>Финансы</h2>
-<p>Покупка: <b id="purchase">0 ₽</b></p>
-<p>Расходы: <b id="expenses">0 ₽</b></p>
-<p>Продажа: <b id="sale">0 ₽</b></p>
-<p>Маржа: <b id="margin" class="green">0 ₽</b></p>
-
-<h2>Данные</h2>
-<p>Марка: <b id="brand"></b></p>
-<p>Модель: <b id="model"></b></p>
-<p>VIN: <b id="vin"></b></p>
-<p>Год: <b id="year"></b></p>
-<p>Пробег: <b id="mileage"></b></p>
-</div>
-</main>
-
-<script src="car.js"></script>
-</body>
-</html>
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VECTOR CRM — Карточка</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="card.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
+<aside class="sidebar"><div class="logo">VECTOR <span>CRM</span></div><nav><a class="menu active" href="index.html">🚗 Автомобили</a><a class="menu">👥 Клиенты</a><a class="menu">🤝 Сделки</a><a class="menu">💳 Платежи</a><a class="menu">📄 Документы</a><a class="menu">📊 Аналитика</a></nav></aside>
+<main><header class="topbar"><div><p class="eyebrow">КАРТОЧКА АВТОМОБИЛЯ</p><h1 id="title">Загрузка…</h1><p id="meta" class="muted"></p></div><a href="index.html"><button class="add-btn">← К списку</button></a></header>
+<section class="stats"><article><span>Полная себестоимость</span><strong id="costPrice">0 ₽</strong></article><article><span>Маржа</span><strong id="margin">0 ₽</strong></article><article><span id="daysLabel">Дней в статусе</span><strong id="daysCount">—</strong></article></section>
+<div class="card-grid"><section class="car-card"><div class="section-head"><h2>Фотографии</h2><label class="upload-btn">+ Загрузить фото<input id="photoInput" type="file" accept="image/*" multiple hidden></label></div><div id="photos" class="photo-grid"><div class="empty">Фото пока нет</div></div></section>
+<section class="car-card"><h2>Основные данные</h2><div class="data-list"><p><span>Марка</span><b id="brand">—</b></p><p><span>Модель</span><b id="model">—</b></p><p><span>VIN</span><b id="vin">—</b></p><p><span>Год</span><b id="year">—</b></p><p><span>Пробег</span><b id="mileage">—</b></p><p><span>Статус</span><b id="status">—</b></p></div></section></div>
+<div class="card-grid"><section class="car-card"><div class="section-head"><h2>Финансы и расходы</h2><button class="small-btn" id="expenseBtn">+ Расход</button></div><div class="data-list"><p><span>Покупка</span><b id="purchase">0 ₽</b></p><p><span>Расходы</span><b id="expenses">0 ₽</b></p><p><span>Продажа</span><b id="sale">0 ₽</b></p></div><div id="expenseList" class="records"></div></section>
+<section class="car-card"><div class="section-head"><h2>Документы и файлы</h2><label class="upload-btn">+ Загрузить<input id="documentInput" type="file" multiple hidden></label></div><div id="documents" class="records"><div class="empty">Документов пока нет</div></div></section></div>
+<div class="card-grid"><section class="car-card"><div class="section-head"><h2>Маршрут</h2><button class="small-btn" id="routeBtn">+ Событие</button></div><div id="routeList" class="timeline"><div class="empty">Маршрут пока не заполнен</div></div></section>
+<section class="car-card"><h2>История изменений</h2><div id="historyList" class="timeline"><div class="empty">История пока пуста</div></div></section></div></main>
+<dialog id="formDialog"><form method="dialog" id="quickForm"><h2 id="dialogTitle"></h2><div id="dialogFields"></div><div class="dialog-actions"><button value="cancel" class="add-btn">Отмена</button><button value="default" id="dialogSave" class="primary-btn">Сохранить</button></div></form></dialog><div id="toast" class="toast"></div><script src="car.js"></script></body></html>
