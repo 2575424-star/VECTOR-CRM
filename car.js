@@ -10,7 +10,7 @@ async function loadCar(){
  set("title",`${car.brand||""} ${car.model||""}`.trim()||"Без названия");set("meta",`${car.year||"—"} • ${Number(car.mileage||0).toLocaleString("ru-RU")} км • VIN ${car.vin||"—"}`);
  ["brand","model","vin","year","status"].forEach(k=>set(k,car[k]||"—"));set("location",car.location||car.current_location||"—");set("mileage",Number(car.mileage||0).toLocaleString("ru-RU")+" км");set("purchase",money(car.purchase_price));set("sale",money(car.sale_price));set("saleTop",money(car.sale_price));
  const since=car.status_changed_at||car.updated_at||car.created_at;if(since){set("daysCount",Math.max(0,Math.floor((Date.now()-new Date(since))/(864e5))));set("daysLabel",/пути|транзит/i.test(car.status||"")?"Дней в пути":/склад|налич/i.test(car.status||"")?"Дней на складе":"Дней в статусе")}
- initParties(car);
+ initParties(car);initContracts();
  await Promise.all([loadExpenses(),loadFiles(),loadRoute(),loadHistory()]);updateMoney();
 }
 function updateMoney(){set("expenses",money(expenseTotal));set("costPrice",money(Number(car?.purchase_price||0)+expenseTotal));set("margin",money(Number(car?.sale_price||0)-Number(car?.purchase_price||0)-expenseTotal))}
