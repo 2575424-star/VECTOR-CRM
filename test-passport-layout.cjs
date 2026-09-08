@@ -1,0 +1,6 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');const ctx={};vm.createContext(ctx);vm.runInContext(fs.readFileSync('passport-layout.js','utf8'),ctx);
+const raw={surname:'- ПЕТРОВ —',given:'ИВАН',middle:'ИВАНОВИЧ',birth_date:'| 01.02.1990',birth_place:'Г. ТЕСТОВЫЙ\nРОССИЯ',passport_issued_at:'| 03.04.2020 —',passport_department_code:'000 – 001',passport_issued_by:'ГУ МВД РОССИИ ПО ТЕСТОВОЙ\nОБЛАСТИ',passport_series:'00 01',passport_number:'000123'};
+const f=ctx.parseRussianPassportRegions(raw).fields;
+assert.equal(f.full_name,'ПЕТРОВ ИВАН ИВАНОВИЧ');assert.equal(f.passport_series,'0001');assert.equal(f.passport_number,'000123');assert.equal(f.birth_date,'1990-02-01');assert.equal(f.passport_department_code,'000-001');assert.equal(f.citizenship,undefined);assert.equal(f.registration_address,undefined);
+const bad=ctx.parseRussianPassportRegions({...raw,surname:'ПЕТРОВ ЛИШНЕЕ',passport_number:'00O123',birth_date:'31.02.1990',passport_issued_by:'ОБЛАСТИ 28.03.2022 000-001'}).fields;assert.equal(bad.full_name,undefined);assert.equal(bad.passport_number,undefined);assert.equal(bad.birth_date,undefined);assert.equal(bad.passport_issued_by,undefined);
+console.log('PASS: separate region extraction, exact zeros, valid dates; mixed authority and uncertain values rejected.');
