@@ -1,0 +1,16 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const ctx={TextEncoder,Blob,Response,DecompressionStream,atob};vm.createContext(ctx);vm.runInContext(fs.readFileSync('contract-engine.js','utf8'),ctx);
+assert.equal(ctx.contractMoney('190000','USD').words,'сто девяносто тысяч долларов США');
+assert.equal(ctx.contractMoney('15 077 830,00','RUB').words,'пятнадцать миллионов семьдесят семь тысяч восемьсот тридцать рублей 00 копеек');
+assert.equal(ctx.contractMoney('21002.01','USD').words,'двадцать одна тысяча два доллара США 01 цент');
+assert.equal(ctx.contractMoney('0.12','RUB').words,'ноль рублей 12 копеек');
+assert.equal(ctx.contractIntegerWords(999999999999),'девятьсот девяносто девять миллиардов девятьсот девяносто девять миллионов девятьсот девяносто девять тысяч девятьсот девяносто девять');
+assert.throws(()=>ctx.contractDate('2026-02-30'));assert.equal(ctx.contractDate('2024-02-29'),'29.02.2024');
+for(const invalid of ['1e5','-1','0','10.123','1000000000000'])assert.throws(()=>ctx.contractCents(invalid));
+assert.equal(ctx.fillContractXML('<w:t>{{name}}</w:t>',{name:'A & <B>'}),'<w:t>A &amp; &lt;B&gt;</w:t>');assert.throws(()=>ctx.fillContractXML('{{missing}}',{}));
+const party={full_name:'Тестов Тест Тестович',birth_date:'1988-10-25',passport_series:'AB',passport_number:'0012345',passport_issued_at:'2025-02-06',passport_issued_by:'Тестовый орган выдачи документов',registration_address:'Тестовая Республика, Тестовая область, Тестовый район, улица Примерная, дом 4',citizenship:'Тестовая Республика',personal_number:'00000000000000',passport_department_code:'000-000'};
+const car={seller:party,buyer:{...party,full_name:'Примерова Анна Тестовна'}};
+const settings={contract_number:'TEST-2026',city:'Тестовый город',contract_date:'2026-09-08',appendix_date:'2026-09-08',vehicle_name:'Тестовый автомобиль G450d',vin:'TEST0000000000001',invoice_number:'TEST-001',invoice_date:'2026-07-29',usd_amount:'190000',rub_amount:'15077830',recipient_name:'TEST COMPANY',bank_name:'TEST BANK',bank_address:'24 Example Street, Example City',bank_swift:'TESTXXXX',bank_account:'000-000-000',bank_account_name:'TEST COMPANY'};
+assert.throws(()=>ctx.contractValues({seller:{},buyer:{}},settings),/Продавец/);
+const values=ctx.contractValues(car,settings);assert.equal(values.seller_document,'Документ AB №0012345');
+(async()=>{const blob=await ctx.makeContract(JSON.parse(fs.readFileSync('contract-template.json','utf8')),values);fs.writeFileSync(process.env.CONTRACT_QA_OUTPUT||'contract-qa.docx',Buffer.from(await blob.arrayBuffer()));console.log('PASS: amounts/words, dates, missing fields, XML escaping, template generation. QA file contains fictitious data only.');})().catch(e=>{console.error(e);process.exitCode=1;});
