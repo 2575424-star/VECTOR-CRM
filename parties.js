@@ -58,6 +58,7 @@ function initParties(vehicle) {
   actions.appendChild(save);actions.appendChild(cancel);form.appendChild(message);form.appendChild(actions);root.appendChild(form);
   const state=partyState[role]={form,fieldset,message,save,cancel,saved:normalizeParty(vehicle[role]),saving:false};
   fillPartyForm(form,state.saved);save.disabled=true;cancel.disabled=true;
+  if(role==="seller")initSellerPassport(form);
   form.addEventListener("input",()=>{
    const dirty=partyDirty(role);save.disabled=cancel.disabled=!dirty;
    message.textContent=dirty?"Есть несохранённые изменения.":"";
