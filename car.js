@@ -31,8 +31,10 @@ async function loadFiles() {
  try {
   const {data,error} = await db.from("car_files").select("*").eq("car_id",String(carId)).order("created_at",{ascending:false});
   if (error) throw error;
+  renderDocuments(data || []);
   for (const [container,type] of [["photos","photo"],["documents","document"]]) {
    const target = el(container);
+   if (type === "document") continue;
    target.replaceChildren();
    const items = (data || []).filter(x => type === "photo" ? x.file_type === "photo" : x.file_type !== "photo");
    for (const item of items) {
@@ -63,7 +65,7 @@ async function loadFiles() {
   return false;
  }
 }
-async function uploadFiles(files,type) {
+async function uploadFiles(files,type,documentDetails = {}) {
  if (!files.length || uploadingFiles) return;
  if (!carId || !car) { fileNotice("Сначала дождитесь загрузки карточки автомобиля."); return; }
  uploadingFiles = true;
@@ -93,7 +95,12 @@ async function uploadFiles(files,type) {
      const lookup = await db.from("car_files").select("id").eq("car_id",String(carId)).eq("path",pending.path).limit(1);
      if (lookup.error) throw lookup.error;
      if (!lookup.data?.length) {
-      const result = await db.from("car_files").insert({car_id:String(carId),name:file.name,path:pending.path,file_type:type,mime_type:file.type});
+      const metadata = {car_id:String(carId),name:file.name,path:pending.path,file_type:type,mime_type:file.type};
+      if (type === "document") {
+       metadata.category = documentDetails.category || "other";
+       metadata.comment = documentDetails.comment || "";
+      }
+      const result = await db.from("car_files").insert(metadata);
       if (result.error) throw result.error;
      }
      pending.registered = true;
@@ -113,7 +120,7 @@ async function uploadFiles(files,type) {
   if (errors.length) {
    const retry = document.createElement("button");
    retry.type = "button"; retry.className = "ghost-btn"; retry.textContent = "Повторить несохранённые";
-   retry.onclick = () => { retry.remove(); uploadFiles(files.filter(f => !pendingUploads.get(f)?.registered),type); };
+   retry.onclick = () => { retry.remove(); uploadFiles(files.filter(f => !pendingUploads.get(f)?.registered),type,documentDetails); };
    el("fileNotice").appendChild(document.createElement("br"));
    el("fileNotice").appendChild(retry);
   }
@@ -128,4 +135,4 @@ async function loadRoute(){const{data}=await db.from("route_events").select("*")
 async function loadHistory(){const{data}=await db.from("car_history").select("*").eq("car_id",String(carId)).order("created_at",{ascending:false}).limit(30);el("historyList").innerHTML=(data||[]).map(x=>`<div class="timeline-item"><b>${x.action}</b><span>${x.details||""} · ${date(x.created_at)}</span></div>`).join("")||'<div class="empty">История пока пуста</div>'}
 function openDialog(mode){dialogMode=mode;set("dialogTitle",mode==="expense"?"Добавить расход":"Добавить событие маршрута");el("dialogFields").innerHTML=mode==="expense"?'<label>Название<input name="name" required placeholder="Доставка, таможня…"></label><label>Сумма<input name="amount" type="number" min="0" required></label>':'<label>Местоположение<input name="location" required placeholder="Бишкек"></label><label>Статус<input name="status" placeholder="Прибыл на склад"></label><label>Дата<input name="event_date" type="date" required></label>';if(mode==="route")el("quickForm").elements.event_date.value=new Date().toISOString().slice(0,10);el("formDialog").showModal()}
 el("quickForm").addEventListener("submit",async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));if(dialogMode==="expense"){const{error}=await db.from("expenses").insert({car_id:carId,name:f.name,amount:Number(f.amount)});if(error)return toast("Ошибка: "+error.message);await history("Добавлен расход",`${f.name}: ${money(f.amount)}`);await loadExpenses();updateMoney()}else{await db.from("route_events").insert({...f,car_id:String(carId)});await history("Обновлён маршрут",`${f.location}: ${f.status||"событие"}`);await loadRoute()}await loadHistory();el("formDialog").close();e.target.reset();toast("Сохранено")});
-el("expenseBtn").onclick=()=>openDialog("expense");el("expenseAddBtn").onclick=()=>openDialog("expense");el("routeBtn").onclick=()=>openDialog("route");el("routeAddBtn").onclick=()=>openDialog("route");el("photoInput").onchange=e=>uploadFiles([...e.target.files],"photo");el("documentInput").onchange=e=>uploadFiles([...e.target.files],"document");loadCar();
+el("expenseBtn").onclick=()=>openDialog("expense");el("expenseAddBtn").onclick=()=>openDialog("expense");el("routeBtn").onclick=()=>openDialog("route");el("routeAddBtn").onclick=()=>openDialog("route");el("photoInput").onchange=e=>uploadFiles([...e.target.files],"photo");el("documentInput").onchange=e=>uploadFiles([...e.target.files],"document");initDocuments();loadCar();
