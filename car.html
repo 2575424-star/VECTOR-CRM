@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VECTOR CRM — Карточка</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="card.css"><link rel="stylesheet" href="documents.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VECTOR CRM — Карточка</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="card.css"><link rel="stylesheet" href="documents.css"><link rel="stylesheet" href="parties.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
 <body>
 <aside class="sidebar">
  <div class="brand"><div class="car-mark">⌁</div><div><b>VECTOR CRM</b><small>IMPORT · LOGISTICS · SALES</small></div></div>
@@ -15,7 +15,8 @@
    <section class="panel photo-panel"><div id="photos" class="photo-grid"><div class="empty">Фото пока нет</div></div><label class="upload-btn">＋ Добавить фото<input id="photoInput" type="file" accept="image/*" multiple hidden></label></section>
    <section class="panel vehicle-summary"><div class="summary-row"><span>⌖ Местонахождение</span><b id="location">—</b></div><div class="summary-row"><span>◴ <span id="daysLabel">Дней в статусе</span></span><b><span id="daysCount">—</span> дней</b></div><div class="summary-row"><span>◫ Себестоимость</span><b id="costPrice">0 ₽</b></div><div class="summary-row"><span>₽ Цена продажи</span><b id="saleTop">0 ₽</b></div><div class="summary-row profit"><span>⌁ Прибыль</span><b id="margin">0 ₽</b></div><div class="summary-actions"><button class="primary-btn" id="routeBtn">Изменить статус</button><button class="ghost-btn" id="expenseBtn">＋ Расход</button><label class="ghost-btn">＋ Файл<input id="documentInput" type="file" multiple hidden></label></div></section>
   </div>
-  <div class="detail-tabs"><button class="active">▣ Общая информация</button><button>✈ Логистика и статус</button><button>◉ Финансы</button><button>▤ Документы</button><button>▧ Фотографии</button><button>◴ История</button></div>
+  <div class="detail-tabs"><button class="active">▣ Общая информация</button><button>✈ Логистика и статус</button><button>◉ Финансы</button><button>▤ Документы</button><button>▧ Фотографии</button><button>◴ История</button><button id="partiesTab">Продавец и покупатель</button></div>
+  <section id="partiesSection" class="car-card parties-section" aria-labelledby="partiesTitle"><h2 id="partiesTitle">Продавец и покупатель</h2><p class="parties-hint">Данные физических лиц для этой сделки. Можно заполнять постепенно — они пригодятся для договора.</p><div id="partiesForms" class="parties-grid"><p class="empty">Загрузка данных…</p></div></section>
   <div class="dashboard-grid">
    <section class="car-card info-card"><h2>1. Общая информация</h2><div class="two-columns"><div class="data-list"><h3>Основные данные</h3><p><span>Марка</span><b id="brand">—</b></p><p><span>Модель</span><b id="model">—</b></p><p><span>Год выпуска</span><b id="year">—</b></p><p><span>VIN</span><b id="vin">—</b></p><p><span>Пробег</span><b id="mileage">—</b></p></div><div class="data-list"><h3>Покупка</h3><p><span>Цена покупки</span><b id="purchase">0 ₽</b></p><p><span>Расходы</span><b id="expenses">0 ₽</b></p><p><span>Цена продажи</span><b id="sale">0 ₽</b></p></div></div><h3>Документы</h3><div id="documents" class="records"><div class="empty">Документов пока нет</div></div></section>
    <section class="car-card route-card"><div class="section-head"><h2>2. Логистика и статус</h2><button class="mini-add" id="routeAddBtn">＋</button></div><div id="routeList" class="timeline"><div class="empty">Маршрут пока не заполнен</div></div></section>
@@ -25,4 +26,4 @@
  </section>
 </main>
 <dialog id="formDialog"><form method="dialog" id="quickForm"><h2 id="dialogTitle"></h2><div id="dialogFields"></div><div class="dialog-actions"><button value="cancel" class="add-btn">Отмена</button><button value="default" id="dialogSave" class="primary-btn">Сохранить</button></div></form></dialog>
-<div id="toast" class="toast"></div><script src="documents.js"></script><script src="car.js"></script></body></html>
+<div id="toast" class="toast"></div><script src="documents.js"></script><script src="parties.js"></script><script src="car.js"></script></body></html>
