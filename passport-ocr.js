@@ -10,11 +10,14 @@ function loadPassportLibrary(){
  }).catch(error=>{passportLibraryPromise=null;throw error;});return passportLibraryPromise;
 }
 function initSellerPassport(form){
+ const modeLabel=document.createElement('label');modeLabel.textContent='Формат фото паспорта';
+ const mode=document.createElement('select');mode.id='sellerPassportMode';
+ mode.innerHTML='<option value="ru-spread">Паспорт РФ — полный разворот</option><option value="generic">Другой документ / страница регистрации</option>';modeLabel.appendChild(mode);
  const button=document.createElement('button');button.type='button';button.className='ghost-btn passport-upload';button.textContent='Загрузить паспорт';
  const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.multiple=true;input.hidden=true;
  button.onclick=()=>{if(!partyState.seller?.saving)input.click();};
- input.onchange=()=>{const files=[...input.files];input.value='';if(files.length)recognizeSellerPassport(files);};
- form.querySelector('h3').after(button,input);
+ input.onchange=()=>{const files=[...input.files];input.value='';if(files.length)recognizeSellerPassport(files,mode.value);};
+ form.querySelector('h3').after(modeLabel,button,input);
  if(document.getElementById('passportOCRDialog'))return;
  const dialog=document.createElement('dialog');dialog.id='passportOCRDialog';dialog.setAttribute('aria-labelledby','passportOCRTitle');
  dialog.innerHTML='<h2 id="passportOCRTitle">Паспорт продавца</h2><p>Загрузите чёткие фото страницы с данными и страницы с регистрацией (JPG, PNG или WebP). Проверьте найденные значения по фото. Отмеченные поля заменят данные в форме продавца; сохранить карточку нужно отдельно.</p><p id="passportOCRStatus" role="status" aria-live="polite"></p><div id="passportOCRPhotos"></div><div id="passportOCRFields"></div><details><summary>Распознанный текст</summary><pre id="passportOCRText"></pre></details><div class="dialog-actions"><button type="button" class="ghost-btn" id="passportOCRClose">Закрыть</button><button type="button" class="primary-btn" id="passportOCRApply" disabled>Перенести отмеченные поля</button></div>';
@@ -57,10 +60,11 @@ function applySellerPassport(){
  state.form.dispatchEvent(new Event('input',{bubbles:true}));document.getElementById('passportOCRDialog').close();
  state.message.textContent='Перенесено полей: '+count+'. Проверьте данные и нажмите «Сохранить» у продавца.';state.message.scrollIntoView({block:'center',behavior:'smooth'});
 }
-async function recognizeSellerPassport(files){
+async function recognizeSellerPassport(files,mode='generic'){
  const dialog=document.getElementById('passportOCRDialog'),status=document.getElementById('passportOCRStatus');
  const token=++passportRun;document.getElementById('passportOCRApply').disabled=true;document.getElementById('passportOCRFields').replaceChildren();document.getElementById('passportOCRText').textContent='';
  if(!dialog.open)dialog.showModal();
+ if(mode==='ru-spread'&&files.length!==1){status.textContent='В режиме паспорта РФ выберите одно фото полного разворота. Прописку загружайте отдельно в режиме «Другой документ / страница регистрации».';return;}
  if(files.length>4||files.some(f=>f.size>12*1024*1024||!f.size||!['image/jpeg','image/png','image/webp'].includes(f.type))){status.textContent='Выберите до 4 фотографий JPG, PNG или WebP, до 12 МБ каждая. Для PDF и HEIC сначала сохраните страницы как JPG или PNG.';return;}
  const photos=document.getElementById('passportOCRPhotos');photos.replaceChildren();
  for(const file of files){const url=URL.createObjectURL(file);passportPhotoURLs.push(url);const img=document.createElement('img');img.src=url;img.alt='Фото паспорта для проверки';photos.appendChild(img);}
@@ -68,8 +72,15 @@ async function recognizeSellerPassport(files){
  let worker=null,timer;
  try{
   const library=await loadPassportLibrary();if(token!==passportRun)return;
-  worker=await library.createWorker(['rus','eng'],1,{workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js',logger:m=>{if(token===passportRun&&m.status==='recognizing text')status.textContent='Распознавание фотографии… '+Math.round(m.progress*100)+'%';}});
+  worker=await library.createWorker(mode==='ru-spread'?'rus':['rus','eng'],1,{langPath:'https://tessdata.projectnaptha.com/4.0.0',workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js',logger:m=>{if(mode!=='ru-spread'&&token===passportRun&&m.status==='recognizing text')status.textContent='Распознавание фотографии… '+Math.round(m.progress*100)+'%';}});
   if(token!==passportRun)return;passportWorker=worker;
+  if(mode==='ru-spread'){
+   const parsed=await Promise.race([recognizeRussianPassportSpread(worker,files[0],(i,total)=>{if(token===passportRun)status.textContent='Чтение области '+i+' из '+total+'…';},()=>token===passportRun),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Истекло время распознавания. Попробуйте снимок меньшего размера.')),120000);})]);
+   clearTimeout(timer);if(token!==passportRun)return;
+   document.getElementById('passportOCRText').textContent=parsed.text;showPassportCandidates(parsed);
+   status.textContent='Найдено полей: '+Object.keys(parsed.fields).length+'. Сверьте каждое значение с фото, особенно ФИО и цифры. Гражданство и адрес регистрации автоматически не определяются по этому развороту.';
+   return;
+  }
   await worker.setParameters({tessedit_pageseg_mode:'3'});
   const texts=[];
   for(let i=0;i<files.length;i++){
