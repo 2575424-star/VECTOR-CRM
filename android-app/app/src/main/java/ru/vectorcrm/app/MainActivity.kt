@@ -4,10 +4,11 @@ import android.app.Activity
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.webkit.CookieManager
@@ -18,6 +19,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -31,6 +33,7 @@ class MainActivity : Activity() {
     companion object {
         private const val CRM_URL = "https://vector-crm-pavel.divine-lime-4457.chatgpt.site/"
         private const val ACCESS_URL = "https://raw.githubusercontent.com/2575424-star/VECTOR-CRM/main/mobile-access.json"
+        private const val BUILTIN_ACCESS_HASH = "0438982148e5b62e605f5965d29eaabaac5d3a380d2ccbfce6578d3eff76be28"
         private const val PREFS = "vector_crm_access"
         private const val KEY_HASH = "access_hash"
         private const val LAST_OK = "last_ok"
@@ -40,7 +43,9 @@ class MainActivity : Activity() {
 
     private lateinit var webView: WebView
     private lateinit var status: TextView
+    private lateinit var title: TextView
     private lateinit var progress: ProgressBar
+    private lateinit var activateButton: Button
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private val executor = Executors.newSingleThreadExecutor()
     private val prefs by lazy { getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
@@ -67,21 +72,48 @@ class MainActivity : Activity() {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
-            setBackgroundColor(0xFF111318.toInt())
+            setPadding(42, 42, 42, 42)
+            setBackgroundColor(0xFF0B1017.toInt())
         }
 
-        progress = ProgressBar(this).apply { isIndeterminate = true }
+        title = TextView(this).apply {
+            text = "VECTOR CRM"
+            textSize = 30f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            setPadding(0, 0, 0, 12)
+        }
+
         status = TextView(this).apply {
             text = "Проверка доступа…"
             textSize = 17f
-            setTextColor(0xFFF1F3F4.toInt())
+            setTextColor(0xFFD7DEE8.toInt())
             gravity = Gravity.CENTER
-            setPadding(36, 24, 36, 24)
+            setPadding(20, 12, 20, 26)
+        }
+
+        activateButton = Button(this).apply {
+            text = "АКТИВИРОВАТЬ"
+            textSize = 16f
+            setTextColor(Color.WHITE)
+            isAllCaps = false
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 22f
+                setColor(0xFF137CFF.toInt())
+            }
+            setPadding(32, 14, 32, 14)
+            visibility = View.GONE
+            setOnClickListener { activateBuiltInAccess() }
+        }
+
+        progress = ProgressBar(this).apply {
+            isIndeterminate = true
         }
 
         webView = WebView(this).apply {
             visibility = View.GONE
-            setBackgroundColor(0xFF111318.toInt())
+            setBackgroundColor(0xFF0B1017.toInt())
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.databaseEnabled = true
@@ -89,7 +121,7 @@ class MainActivity : Activity() {
             settings.mediaPlaybackRequiresUserGesture = false
             settings.allowFileAccess = true
             settings.allowContentAccess = true
-            settings.userAgentString = settings.userAgentString + " VECTORCRM-Android/1.0"
+            settings.userAgentString = settings.userAgentString + " VECTORCRM-Android/1.1"
 
             CookieManager.getInstance().setAcceptCookie(true)
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
@@ -131,14 +163,21 @@ class MainActivity : Activity() {
                         .addRequestHeader("User-Agent", userAgent)
                         .addRequestHeader("Cookie", CookieManager.getInstance().getCookie(url))
                         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                        .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, android.webkit.URLUtil.guessFileName(url, contentDisposition, mimeType))
+                        .setDestinationInExternalPublicDir(
+                            Environment.DIRECTORY_DOWNLOADS,
+                            android.webkit.URLUtil.guessFileName(url, contentDisposition, mimeType)
+                        )
                     (getSystemService(DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
                 } catch (_: Exception) {}
             })
         }
 
+        root.addView(title, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         root.addView(progress, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         root.addView(status, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        root.addView(activateButton, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            setMargins(24, 8, 24, 8)
+        })
         root.addView(webView, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         setContentView(root)
     }
@@ -150,26 +189,33 @@ class MainActivity : Activity() {
             if (token.isNullOrBlank()) {
                 showLocked("Ссылка активации повреждена.")
             } else {
-                activate(token)
+                activateToken(token)
             }
         } else {
             verifyStoredAccess(silent = false)
         }
     }
 
-    private fun activate(token: String) {
+    private fun activateBuiltInAccess() {
+        activateHash(BUILTIN_ACCESS_HASH)
+    }
+
+    private fun activateToken(token: String) {
+        activateHash(sha256(token))
+    }
+
+    private fun activateHash(hash: String) {
         showChecking("Активация устройства…")
-        val hash = sha256(token)
         executor.execute {
             val result = checkHashOnline(hash)
             runOnUiThread {
-                if (result == true) {
-                    prefs.edit().putString(KEY_HASH, hash).putLong(LAST_OK, System.currentTimeMillis()).apply()
-                    openCrm()
-                } else if (result == false) {
-                    showLocked("Ссылка активации недействительна или доступ отозван.")
-                } else {
-                    showLocked("Не удалось проверить активацию. Подключите интернет и откройте ссылку ещё раз.")
+                when (result) {
+                    true -> {
+                        prefs.edit().putString(KEY_HASH, hash).putLong(LAST_OK, System.currentTimeMillis()).apply()
+                        openCrm()
+                    }
+                    false -> showLocked("Ключ активации недействителен или доступ отозван.")
+                    null -> showLocked("Не удалось проверить активацию. Подключите интернет и нажмите «АКТИВИРОВАТЬ» ещё раз.")
                 }
             }
         }
@@ -178,7 +224,7 @@ class MainActivity : Activity() {
     private fun verifyStoredAccess(silent: Boolean) {
         val hash = prefs.getString(KEY_HASH, null)
         if (hash.isNullOrBlank()) {
-            showLocked("VECTOR CRM не активирован на этом устройстве.\nОткройте персональную ссылку активации после установки APK.")
+            showLocked("Приложение ещё не активировано на этом устройстве.\nНажмите кнопку ниже — это потребуется только один раз.")
             return
         }
 
@@ -197,7 +243,7 @@ class MainActivity : Activity() {
                         if (System.currentTimeMillis() - lastOk <= OFFLINE_GRACE_MS) {
                             if (!isAuthorized) openCrm()
                         } else if (!silent) {
-                            showLocked("Нет связи с сервером проверки доступа. Для продолжения подключите интернет.")
+                            showLocked("Нет связи с сервером проверки доступа. Подключите интернет.")
                         }
                     }
                 }
@@ -231,8 +277,10 @@ class MainActivity : Activity() {
 
     private fun openCrm() {
         isAuthorized = true
+        title.visibility = View.GONE
         progress.visibility = View.GONE
         status.visibility = View.GONE
+        activateButton.visibility = View.GONE
         webView.visibility = View.VISIBLE
         if (webView.url == null) webView.loadUrl(CRM_URL)
     }
@@ -240,6 +288,8 @@ class MainActivity : Activity() {
     private fun showChecking(message: String) {
         isAuthorized = false
         webView.visibility = View.GONE
+        title.visibility = View.VISIBLE
+        activateButton.visibility = View.GONE
         progress.visibility = View.VISIBLE
         status.visibility = View.VISIBLE
         status.text = message
@@ -249,8 +299,10 @@ class MainActivity : Activity() {
         isAuthorized = false
         webView.stopLoading()
         webView.visibility = View.GONE
+        title.visibility = View.VISIBLE
         progress.visibility = View.GONE
         status.visibility = View.VISIBLE
+        activateButton.visibility = View.VISIBLE
         status.text = message
     }
 
