@@ -32,17 +32,17 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Build installable debug APK
+      - name: Build unsigned release APK
         working-directory: android-app
-        run: gradle :app:assembleDebug --stacktrace
+        run: gradle :app:assembleRelease --stacktrace
 
       - name: Rename APK
-        run: cp android-app/app/build/outputs/apk/debug/app-debug.apk VECTOR-CRM-v1.0.0.apk
+        run: cp android-app/app/build/outputs/apk/release/app-release-unsigned.apk VECTOR-CRM-v1.1.0-unsigned.apk
 
-      - name: Upload APK artifact
+      - name: Upload unsigned APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: VECTOR-CRM-APK
-          path: VECTOR-CRM-v1.0.0.apk
+          name: VECTOR-CRM-v1.1.0-unsigned
+          path: VECTOR-CRM-v1.1.0-unsigned.apk
           if-no-files-found: error
           retention-days: 30
