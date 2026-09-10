@@ -41,7 +41,7 @@ jobs:
 
       - name: Prepare artifacts
         run: |
-          cp android-app/app/build/outputs/apk/release/app-release-unsigned.apk VECTOR-CRM-v1.1.0-unsigned.apk
+          cp android-app/app/build/outputs/apk/release/app-release-unsigned.apk VECTOR-CRM-v1.1.1-unsigned.apk
           mkdir -p apksigner-tool/lib
           cp "$ANDROID_HOME/build-tools/35.0.0/apksigner" apksigner-tool/
           cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" apksigner-tool/lib/
@@ -50,8 +50,8 @@ jobs:
       - name: Upload unsigned APK
         uses: actions/upload-artifact@v4
         with:
-          name: VECTOR-CRM-v1.1.0-unsigned
-          path: VECTOR-CRM-v1.1.0-unsigned.apk
+          name: VECTOR-CRM-v1.1.1-unsigned
+          path: VECTOR-CRM-v1.1.1-unsigned.apk
           if-no-files-found: error
           retention-days: 30
 
