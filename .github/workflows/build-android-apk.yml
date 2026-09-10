@@ -27,6 +27,9 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install Android build tools 35.0.0
+        run: sdkmanager "build-tools;35.0.0" "platforms;android-35"
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -36,13 +39,26 @@ jobs:
         working-directory: android-app
         run: gradle :app:assembleRelease --stacktrace
 
-      - name: Rename APK
-        run: cp android-app/app/build/outputs/apk/release/app-release-unsigned.apk VECTOR-CRM-v1.1.0-unsigned.apk
+      - name: Prepare artifacts
+        run: |
+          cp android-app/app/build/outputs/apk/release/app-release-unsigned.apk VECTOR-CRM-v1.1.0-unsigned.apk
+          mkdir -p apksigner-tool/lib
+          cp "$ANDROID_HOME/build-tools/35.0.0/apksigner" apksigner-tool/
+          cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" apksigner-tool/lib/
+          chmod +x apksigner-tool/apksigner
 
-      - name: Upload unsigned APK artifact
+      - name: Upload unsigned APK
         uses: actions/upload-artifact@v4
         with:
           name: VECTOR-CRM-v1.1.0-unsigned
           path: VECTOR-CRM-v1.1.0-unsigned.apk
           if-no-files-found: error
           retention-days: 30
+
+      - name: Upload official apksigner
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apksigner-35
+          path: apksigner-tool/
+          if-no-files-found: error
+          retention-days: 7
