@@ -9,6 +9,7 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.text.InputType
 import android.view.Gravity
 import android.view.View
 import android.webkit.CookieManager
@@ -20,6 +21,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -46,6 +48,9 @@ class MainActivity : Activity() {
     private lateinit var title: TextView
     private lateinit var progress: ProgressBar
     private lateinit var activateButton: Button
+    private lateinit var linkLabel: TextView
+    private lateinit var linkInput: EditText
+    private lateinit var linkActivateButton: Button
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private val executor = Executors.newSingleThreadExecutor()
     private val prefs by lazy { getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
@@ -97,19 +102,50 @@ class MainActivity : Activity() {
             textSize = 16f
             setTextColor(Color.WHITE)
             isAllCaps = false
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = 22f
-                setColor(0xFF137CFF.toInt())
-            }
+            background = blueButtonBackground()
             setPadding(32, 14, 32, 14)
             visibility = View.GONE
             setOnClickListener { activateBuiltInAccess() }
         }
 
-        progress = ProgressBar(this).apply {
-            isIndeterminate = true
+        linkLabel = TextView(this).apply {
+            text = "или вставьте персональную ссылку активации"
+            textSize = 14f
+            setTextColor(0xFF9EABBA.toInt())
+            gravity = Gravity.CENTER
+            setPadding(8, 28, 8, 10)
+            visibility = View.GONE
         }
+
+        linkInput = EditText(this).apply {
+            hint = "vectorcrm://activate?token=..."
+            textSize = 15f
+            setTextColor(Color.WHITE)
+            setHintTextColor(0xFF718096.toInt())
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+            isSingleLine = true
+            setPadding(24, 16, 24, 16)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 20f
+                setColor(0xFF151D28.toInt())
+                setStroke(1, 0xFF34445A.toInt())
+            }
+            visibility = View.GONE
+        }
+
+        linkActivateButton = Button(this).apply {
+            text = "АКТИВИРОВАТЬ ПО ССЫЛКЕ"
+            textSize = 15f
+            setTextColor(Color.WHITE)
+            isAllCaps = false
+            background = blueButtonBackground()
+            setPadding(28, 14, 28, 14)
+            visibility = View.GONE
+            setOnClickListener { activateFromPastedLink() }
+        }
+
+        progress = ProgressBar(this).apply { isIndeterminate = true }
 
         webView = WebView(this).apply {
             visibility = View.GONE
@@ -121,7 +157,7 @@ class MainActivity : Activity() {
             settings.mediaPlaybackRequiresUserGesture = false
             settings.allowFileAccess = true
             settings.allowContentAccess = true
-            settings.userAgentString = settings.userAgentString + " VECTORCRM-Android/1.1"
+            settings.userAgentString = settings.userAgentString + " VECTORCRM-Android/1.1.1"
 
             CookieManager.getInstance().setAcceptCookie(true)
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
@@ -178,19 +214,28 @@ class MainActivity : Activity() {
         root.addView(activateButton, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
             setMargins(24, 8, 24, 8)
         })
+        root.addView(linkLabel, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
+        root.addView(linkInput, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            setMargins(24, 4, 24, 10)
+        })
+        root.addView(linkActivateButton, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            setMargins(24, 4, 24, 8)
+        })
         root.addView(webView, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         setContentView(root)
+    }
+
+    private fun blueButtonBackground(): GradientDrawable = GradientDrawable().apply {
+        shape = GradientDrawable.RECTANGLE
+        cornerRadius = 22f
+        setColor(0xFF137CFF.toInt())
     }
 
     private fun handleIntent(intent: Intent?) {
         val data = intent?.data
         if (data?.scheme == "vectorcrm" && data.host == "activate") {
             val token = data.getQueryParameter("token")
-            if (token.isNullOrBlank()) {
-                showLocked("Ссылка активации повреждена.")
-            } else {
-                activateToken(token)
-            }
+            if (token.isNullOrBlank()) showLocked("Ссылка активации повреждена.") else activateToken(token)
         } else {
             verifyStoredAccess(silent = false)
         }
@@ -198,6 +243,36 @@ class MainActivity : Activity() {
 
     private fun activateBuiltInAccess() {
         activateHash(BUILTIN_ACCESS_HASH)
+    }
+
+    private fun activateFromPastedLink() {
+        val raw = linkInput.text?.toString()?.trim().orEmpty()
+        if (raw.isBlank()) {
+            status.text = "Вставьте персональную ссылку активации в поле ниже."
+            return
+        }
+
+        val token = extractToken(raw)
+        if (token.isNullOrBlank()) {
+            status.text = "Не удалось найти ключ в ссылке. Проверьте, что ссылка вставлена полностью."
+            return
+        }
+        activateToken(token)
+    }
+
+    private fun extractToken(raw: String): String? {
+        return try {
+            val uri = Uri.parse(raw)
+            val queryToken = uri.getQueryParameter("token")
+            when {
+                !queryToken.isNullOrBlank() -> queryToken
+                raw.contains("token=") -> raw.substringAfter("token=").substringBefore("&").trim().ifBlank { null }
+                !raw.contains("://") && raw.length >= 16 -> raw
+                else -> null
+            }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun activateToken(token: String) {
@@ -212,10 +287,11 @@ class MainActivity : Activity() {
                 when (result) {
                     true -> {
                         prefs.edit().putString(KEY_HASH, hash).putLong(LAST_OK, System.currentTimeMillis()).apply()
+                        linkInput.setText("")
                         openCrm()
                     }
                     false -> showLocked("Ключ активации недействителен или доступ отозван.")
-                    null -> showLocked("Не удалось проверить активацию. Подключите интернет и нажмите «АКТИВИРОВАТЬ» ещё раз.")
+                    null -> showLocked("Не удалось проверить активацию. Подключите интернет и попробуйте ещё раз.")
                 }
             }
         }
@@ -224,7 +300,7 @@ class MainActivity : Activity() {
     private fun verifyStoredAccess(silent: Boolean) {
         val hash = prefs.getString(KEY_HASH, null)
         if (hash.isNullOrBlank()) {
-            showLocked("Приложение ещё не активировано на этом устройстве.\nНажмите кнопку ниже — это потребуется только один раз.")
+            showLocked("Приложение ещё не активировано на этом устройстве.\nМожно нажать «АКТИВИРОВАТЬ» или вставить персональную ссылку ниже.")
             return
         }
 
@@ -281,6 +357,9 @@ class MainActivity : Activity() {
         progress.visibility = View.GONE
         status.visibility = View.GONE
         activateButton.visibility = View.GONE
+        linkLabel.visibility = View.GONE
+        linkInput.visibility = View.GONE
+        linkActivateButton.visibility = View.GONE
         webView.visibility = View.VISIBLE
         if (webView.url == null) webView.loadUrl(CRM_URL)
     }
@@ -290,6 +369,9 @@ class MainActivity : Activity() {
         webView.visibility = View.GONE
         title.visibility = View.VISIBLE
         activateButton.visibility = View.GONE
+        linkLabel.visibility = View.GONE
+        linkInput.visibility = View.GONE
+        linkActivateButton.visibility = View.GONE
         progress.visibility = View.VISIBLE
         status.visibility = View.VISIBLE
         status.text = message
@@ -303,6 +385,9 @@ class MainActivity : Activity() {
         progress.visibility = View.GONE
         status.visibility = View.VISIBLE
         activateButton.visibility = View.VISIBLE
+        linkLabel.visibility = View.VISIBLE
+        linkInput.visibility = View.VISIBLE
+        linkActivateButton.visibility = View.VISIBLE
         status.text = message
     }
 
